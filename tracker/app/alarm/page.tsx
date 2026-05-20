@@ -1,111 +1,80 @@
-// import React, { useEffect, useState } from "react";
+"use client";
 
-// export default function RoutineAlarm() {
+import { useEffect, useState } from "react";
 
-//   const [routine, setRoutine] = useState("");
-//   const [alarmTime, setAlarmTime] = useState("");
-//   const [status, setStatus] = useState("");
+export default function RoutineAlarm() {
+  const [routine, setRoutine] = useState("");
+  const [alarmTime, setAlarmTime] = useState("");
+  const [status, setStatus] = useState("");
 
-//   // Ask notification permission
-//   useEffect(() => {
-//     Notification.requestPermission();
-//   }, []);
+  useEffect(() => {
+    if ("Notification" in window) {
+      Notification.requestPermission();
+    }
+  }, []);
 
-//   // Check time every second
-//   useEffect(() => {
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      const savedRoutine = localStorage.getItem("routine");
+      const savedTime = localStorage.getItem("alarmTime");
+      const now = new Date();
+      const currentHours = String(now.getHours()).padStart(2, "0");
+      const currentMinutes = String(now.getMinutes()).padStart(2, "0");
+      const currentTime = `${currentHours}:${currentMinutes}`;
 
-//     const interval = setInterval(() => {
+      if (currentTime === (savedTime ?? "")) {
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification("Routine Reminder", {
+            body: savedRoutine ?? "",
+          });
+        }
 
-//       const savedRoutine =
-//         localStorage.getItem("routine");
+        const audio = new Audio(
+          "https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3",
+        );
 
-//       const savedTime =
-//         localStorage.getItem("alarmTime");
+        audio.play();
+      }
+    }, 1000);
 
-//       const now = new Date();
+    return () => window.clearInterval(interval);
+  }, []);
 
-//       const currentHours =
-//         String(now.getHours()).padStart(2, "0");
+  const saveAlarm = () => {
+    localStorage.setItem("routine", routine);
+    localStorage.setItem("alarmTime", alarmTime);
+    setStatus("Alarm saved");
+  };
 
-//       const currentMinutes =
-//         String(now.getMinutes()).padStart(2, "0");
+  return (
+    <div className="flex h-screen items-center justify-center bg-gray-100">
+      <div className="w-80 rounded-2xl bg-white p-6 shadow-xl">
+        <h1 className="mb-5 text-center text-2xl font-bold">Routine Alarm</h1>
 
-//       const currentTime =
-//         `${currentHours}:${currentMinutes}`;
+        <input
+          type="text"
+          placeholder="Enter Routine"
+          value={routine}
+          onChange={(event) => setRoutine(event.target.value)}
+          className="mb-3 w-full rounded border p-2"
+        />
 
-//       // Trigger Alarm
-//       if (currentTime === (savedTime ?? "")) {
+        <input
+          type="time"
+          value={alarmTime}
+          onChange={(event) => setAlarmTime(event.target.value)}
+          className="mb-3 w-full rounded border p-2"
+        />
 
-//         // Notification
-//         new Notification("Routine Reminder 🔔", {
-//               body: savedRoutine ?? "",
-//         });
+        <button
+          onClick={saveAlarm}
+          className="w-full rounded-lg bg-blue-500 py-2 text-white"
+        >
+          Save Alarm
+        </button>
 
-//         // Alarm Sound
-//         const audio = new Audio(
-//           "https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"
-//         );
-
-//         audio.play();
-//       }
-
-//     }, 1000);
-
-//     return () => clearInterval(interval);
-
-//   }, []);
-
-//   // Save Routine
-//   const saveAlarm = () => {
-
-//     localStorage.setItem("routine", routine);
-//     localStorage.setItem("alarmTime", alarmTime);
-
-//     setStatus("Alarm Saved ✅");
-//   };
-
-//   return (
-
-//     <div className="bg-gray-100 h-screen flex items-center justify-center">
-
-//       <div className="bg-white p-6 rounded-2xl shadow-xl w-80">
-
-//         <h1 className="text-2xl font-bold text-center mb-5">
-//           Routine Alarm 🔔
-//         </h1>
-
-//         {/* Routine Input */}
-//         <input
-//           type="text"
-//           placeholder="Enter Routine"
-//           value={routine}
-//           onChange={(e) => setRoutine(e.target.value)}
-//           className="w-full border p-2 rounded mb-3"
-//         />
-
-//         {/* Time Input */}
-//         <input
-//           type="time"
-//           value={alarmTime}
-//           onChange={(e) => setAlarmTime(e.target.value)}
-//           className="w-full border p-2 rounded mb-3"
-//         />
-
-//         {/* Save Button */}
-//         <button
-//           onClick={saveAlarm}
-//           className="bg-blue-500 text-white w-full py-2 rounded-lg"
-//         >
-//           Save Alarm
-//         </button>
-
-//         {/* Status */}
-//         <p className="text-center mt-3 text-green-600">
-//           {status}
-//         </p>
-
-//       </div>
-
-//     </div>
-//   );
-// }
+        <p className="mt-3 text-center text-green-600">{status}</p>
+      </div>
+    </div>
+  );
+}
